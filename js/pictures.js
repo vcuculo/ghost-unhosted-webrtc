@@ -7,9 +7,18 @@
 // unless it starts with a dollar sign ($)
 //
 
-remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
+RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
 
-  var isDir = remoteStorage.util.isDir;
+  function isDir(path) {
+    return path.substr(-1) == '/';
+  }
+  function bindAll(object) {
+    for(var key in this) {
+      if(typeof(object[key]) == 'function') {
+        object[key] = object[key].bind(object);
+      }
+    }
+  }
 
   // Albums only work, when the user is connected and online.
   var Album = function(name, client) {
@@ -21,7 +30,7 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     // this.client.use(this.prefix, true);
 
     // Bind all the things
-    remoteStorage.util.bindAll(this);
+    bindAll(this);
   };
 
   Album.prototype = {
@@ -59,7 +68,7 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     },
 
     close: function() {
-      this.client.release(this.prefix);
+      this.client.cache(this.prefix, false);
     },
 
     _path: function(fileName) {
@@ -79,11 +88,6 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
   }
 
   var pictures = {
-
-    init: function() {
-      privateClient.release('');
-      publicClient.release('');
-    },
 
     getUuid: privateClient.uuid,
 
